@@ -1,0 +1,39 @@
+body {
+    background-color: black;
+}
+
+.Welcome{
+    color: magenta;
+}
+
+.Welcome {
+    padding-left: 690px;
+}
+
+.SIPLogo {
+   display: block;
+   margin: auto;
+   padding-left: 440px;
+}
+
+#myButton {
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    margin: 0 auto;
+    align-items: center;
+  }
+  
+  #myButton {background-color: limegreen
+  }
+
+  #myButton:hover{
+    background-color: red;
+    color: white;
+  }
