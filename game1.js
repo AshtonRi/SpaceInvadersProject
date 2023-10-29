@@ -22,12 +22,77 @@ const bullet = {
     dy: 5,
 };
 
+// Alien's bullets 
+const alienBullets = [];
+const alienBullet = {
+    width: 5,
+    height: 10,
+    dy: 3,
+};
+
 const aliens = [];
+
+let isShipVisible = true;
 
 // Alien image 
 const alienImage = new Image();
-alienImage.src = 'https://www.pngall.com/wp-content/uploads/13/Space-Invaders-Alien-Transparent.png';    
+alienImage.src = 'https://www.pngall.com/wp-content/uploads/13/Space-Invaders-Alien-Transparent.png';   
 
+function aliensShootBullet() {
+    if (aliens.length === 0) return; 
+    const shooterAlien = aliens[Math.floor(Math.random() * aliens.length)];
+
+    const newBullet = {
+        x: shooterAlien.x + shooterAlien.width / 2 - alienBullet.width / 2,
+        y: shooterAlien.y + shooterAlien.height,
+        width: alienBullet.width,
+        height: alienBullet.height,
+        dy: alienBullet.dy,
+    };
+
+    alienBullets.push(newBullet);
+}
+
+function drawAlienBullets() {
+    ctx.fillStyle = 'red'; 
+    alienBullets.forEach(b => {
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+    });
+}
+
+function moveAlienBullets() {
+    for (let i = 0; i < alienBullets.length; i++) {
+        alienBullets[i].y += alienBullets[i].dy;
+
+        if (alienBullets[i].y > canvas.height) {
+            alienBullets.splice(i, 1);
+            i--; 
+        }
+    }
+}
+
+function showGameOverModal() {
+    const modal = document.getElementById('gameOverModal');
+    modal.style.display = 'flex';
+
+    const restartBtn = document.getElementById('restartButton');
+    restartBtn.addEventListener('click', function() {
+        
+        modal.style.display = 'none';
+        location.reload(); 
+    });
+}
+ 
+function checkAlienBulletShipCollision() {
+    for (let i = alienBullets.length - 1; i >= 0; i--) {
+        if (isColliding(alienBullets[i], ship)) {
+            alienBullets.splice(i, 1);
+            isShipVisible = false; 
+            showGameOverModal();
+            break;
+        }
+    }
+}
 
 function initializeAliens() {
     const numAliens = 10;
@@ -82,18 +147,26 @@ function isColliding(a, b) {
     );
 }
 
+let aliensKilled = 0;
+
 function checkBulletAlienCollisions() {
     for (let i = bullets.length - 1; i >= 0; i--) {
         for (let j = aliens.length - 1; j >= 0; j--) {
             if (isColliding(bullets[i], aliens[j])) {
                 bullets.splice(i, 1);
                 aliens.splice(j, 1);
+                aliensKilled++;
                 break;
             }
         }
     }
 }
 
+function drawScore() {
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "white";
+    ctx.fillText("Aliens Killed: " + aliensKilled, 10, 30);
+}
 
 function drawAliens() {
 
@@ -103,8 +176,10 @@ function drawAliens() {
     }  
 
 function drawShip() {
-    ctx.fillStyle = 'white';
-    ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
+    if (isShipVisible) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
+    }
 }
 
 // Main game loop
@@ -114,10 +189,18 @@ function gameLoop() {
     
     drawBullets();
     moveBullets();
+    drawAlienBullets();
+    moveAlienBullets();
     drawShip(); 
     moveAliens();
     checkBulletAlienCollisions();
+    checkAlienBulletShipCollision();
     drawAliens(); 
+    drawScore();
+
+    if (Math.random() < 0.02) { // Adjust this value to control shooting frequency
+        aliensShootBullet();
+    }
 
     requestAnimationFrame(gameLoop); 
 }
