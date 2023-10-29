@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const button = document.getElementById("myButton");
     button.addEventListener("click", function() {
-        window.location.href = "https://en.wikipedia.org/";
+        window.location.href = "game1.html";
         console.log("This is from the addEventListener method.");
     });
 });
