@@ -1,7 +1,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Set canvas dimensions
+// Canvas dimensions
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -18,7 +18,7 @@ const ship = {
 const bullets = [];
 const bullet = {
     width: 5,
-    height: 10, 
+    height: 10,
     dy: 5,
 };
 
@@ -31,15 +31,23 @@ const alienBullet = {
 };
 
 const aliens = [];
-
 let isShipVisible = true;
+
+const blockers = [];
+const blocker = {
+    rows: 3,
+    cols: 5,
+    blockWidth: 15,
+    blockHeight: 10,
+    blocks: []
+};
 
 // Alien image 
 const alienImage = new Image();
-alienImage.src = 'https://www.pngall.com/wp-content/uploads/13/Space-Invaders-Alien-Transparent.png';   
+alienImage.src = 'https://www.pngall.com/wp-content/uploads/13/Space-Invaders-Alien-Transparent.png';
 
 function aliensShootBullet() {
-    if (aliens.length === 0) return; 
+    if (aliens.length === 0) return;
     const shooterAlien = aliens[Math.floor(Math.random() * aliens.length)];
 
     const newBullet = {
@@ -53,20 +61,78 @@ function aliensShootBullet() {
     alienBullets.push(newBullet);
 }
 
+function initializeBlockers() {
+    const numOfBlockers = 4;
+    const blockerTotalWidth = blocker.cols * blocker.blockWidth;
+    const totalBlockersWidth = numOfBlockers * blockerTotalWidth;
+    const totalSpacing = canvas.width - totalBlockersWidth;
+    const spacingBetweenBlockers = totalSpacing / (numOfBlockers + 1);
+    const yPosition = canvas.height - 150;
+
+    let xPosition = spacingBetweenBlockers;
+    
+    for (let i = 0; i < numOfBlockers; i++) {
+        let newBlocker = [];
+        for (let r = 0; r < blocker.rows; r++) {
+            for (let c = 0; c < blocker.cols; c++) {
+                newBlocker.push({
+                    x: xPosition + c * blocker.blockWidth,
+                    y: yPosition + r * blocker.blockHeight,
+                    width: blocker.blockWidth,
+                    height: blocker.blockHeight,
+                    isAlive: true 
+                });
+            }
+        }
+        blockers.push(newBlocker);
+        xPosition += blockerTotalWidth + spacingBetweenBlockers;
+    }
+}
+
+
+
+function drawBlockers() {
+    ctx.fillStyle = 'white ';
+    blockers.forEach(blockerGroup => {
+        blockerGroup.forEach(block => {
+            if (block.isAlive) {
+                ctx.fillRect(block.x, block.y, block.width, block.height);
+            }
+        });
+    });
+}
+
+
+function handleBulletBlockerCollision(bullet) {
+    for (let i = 0; i < blockers.length; i++) {
+        for (let j = 0; j < blockers[i].length; j++) {
+            if (blockers[i][j].isAlive && isColliding(bullet, blockers[i][j])) {
+                blockers[i][j].isAlive = false; 
+                return true; 
+            }
+        }
+    }
+    return false; 
+}
+
 function drawAlienBullets() {
-    ctx.fillStyle = 'red'; 
+    ctx.fillStyle = 'red';
     alienBullets.forEach(b => {
         ctx.fillRect(b.x, b.y, b.width, b.height);
     });
 }
 
 function moveAlienBullets() {
-    for (let i = 0; i < alienBullets.length; i++) {
+    for (let i = alienBullets.length - 1; i >= 0; i--) {
         alienBullets[i].y += alienBullets[i].dy;
 
         if (alienBullets[i].y > canvas.height) {
             alienBullets.splice(i, 1);
-            i--; 
+            continue;
+        }
+
+        if (handleBulletBlockerCollision(alienBullets[i])) {
+            alienBullets.splice(i, 1); 
         }
     }
 }
@@ -77,17 +143,16 @@ function showGameOverModal() {
 
     const restartBtn = document.getElementById('restartButton');
     restartBtn.addEventListener('click', function() {
-        
         modal.style.display = 'none';
-        location.reload(); 
+        location.reload();
     });
 }
- 
+
 function checkAlienBulletShipCollision() {
     for (let i = alienBullets.length - 1; i >= 0; i--) {
         if (isColliding(alienBullets[i], ship)) {
             alienBullets.splice(i, 1);
-            isShipVisible = false; 
+            isShipVisible = false;
             showGameOverModal();
             break;
         }
@@ -103,8 +168,8 @@ function initializeAliens() {
     let startX = 50;
     let startY = 50;
 
-    for(let row = 0; row < numRows; row++) {
-        for(let i = 0; i < numAliens; i++) {
+    for (let row = 0; row < numRows; row++) {
+        for (let i = 0; i < numAliens; i++) {
             aliens.push({
                 x: startX + i * (scaledWidth + spacing),
                 y: startY + row * (scaledHeight + spacing),
@@ -113,12 +178,11 @@ function initializeAliens() {
             });
         }
     }
-}  
+}
 
-
-let alienDirection = 1;  // 1 for right, -1 for left
+let alienDirection = 1;
 const alienSpeed = 2;
-const alienDrop = 20;  // how much aliens will move down when changing direction
+const alienDrop = 20;
 
 function moveAliens() {
     let edgeReached = false;
@@ -169,11 +233,10 @@ function drawScore() {
 }
 
 function drawAliens() {
-
-        for (const alien of aliens) {
-            ctx.drawImage(alienImage, alien.x, alien.y, alien.width, alien.height);
-        }
-    }  
+    for (const alien of aliens) {
+        ctx.drawImage(alienImage, alien.x, alien.y, alien.width, alien.height);
+    }
+}
 
 function drawShip() {
     if (isShipVisible) {
@@ -186,75 +249,84 @@ function drawShip() {
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
 
-    
     drawBullets();
     moveBullets();
     drawAlienBullets();
     moveAlienBullets();
-    drawShip(); 
+    drawBlockers(); 
+    drawShip();
     moveAliens();
     checkBulletAlienCollisions();
     checkAlienBulletShipCollision();
-    drawAliens(); 
+    drawAliens();
     drawScore();
 
-    if (Math.random() < 0.02) { // Adjust this value to control shooting frequency
+    if (Math.random() < 0.02) {
         aliensShootBullet();
     }
 
-    requestAnimationFrame(gameLoop); 
+    requestAnimationFrame(gameLoop);
 }
+
 document.addEventListener('keydown', function(event) {
     switch (event.keyCode) {
         case 37:  // Left arrow key
-            if (ship.x - ship.dx >= 0) { // Check left boundary
+            if (ship.x - ship.dx >= 0) {
                 ship.x -= ship.dx;
             } else {
-                ship.x = 0; // Ensure the ship stays completely on the canvas
+                ship.x = 0;
             }
             break;
+        case 39:  //
+
         case 39:  // Right arrow key
-            if (ship.x + ship.width + ship.dx <= canvas.width) { // Check right boundary
-                ship.x += ship.dx;
-            } else {
-                ship.x = canvas.width - ship.width; // Ensure the ship stays completely on the canvas
-            }
-            break;
-        case 32:  // Space key
-            shootBullet();
-            break;
-    }
+        if (ship.x + ship.width + ship.dx <= canvas.width) {
+            ship.x += ship.dx;
+        } else {
+            ship.x = canvas.width - ship.width;
+        }
+        break;
+    case 32:  // Space key (Shoot bullet)
+        shootBullet();
+        break;
+}
 });
 
-// Bullet mechanics start here 
+function shootBullet() {
+const newBullet = {
+    x: ship.x + ship.width / 2 - bullet.width / 2,
+    y: ship.y,
+    width: bullet.width,
+    height: bullet.height,
+    dy: -bullet.dy,
+};
+
+bullets.push(newBullet);
+}
+
 function drawBullets() {
-    ctx.fillStyle = 'blue';
-    bullets.forEach(b => {
-        ctx.fillRect(b.x, b.y, b.width, b.height);
-    });
+ctx.fillStyle = 'white';
+bullets.forEach(b => {
+    ctx.fillRect(b.x, b.y, b.width, b.height);
+});
 }
 
 function moveBullets() {
-    for(let i = 0; i < bullets.length; i++) {
-        bullets[i].y -= bullets[i].dy;
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        bullets[i].y += bullets[i].dy;
 
-        if (bullets[i].y + bullets[i].height < 0 ) {
+        if (bullets[i].y < 0) {
             bullets.splice(i, 1);
+            continue;
+        }
+
+        
+        if (handleBulletBlockerCollision(bullets[i])) {
+            bullets.splice(i, 1); 
         }
     }
 }
 
-function shootBullet() {
-    console.log("Shooting Bullet")
-    const newBullet = {
-        x: ship.x + ship.width / 2 - bullet.width / 2,
-        y: ship.y - bullet.height,  // Spawn the bullet just above the ship
-        width: bullet.width, 
-        height: bullet.height,
-        dy: bullet.dy,
-    };
-    bullets.push(newBullet); 
-}
-
 initializeAliens();
-gameLoop();
+initializeBlockers();
+gameLoop(); 
