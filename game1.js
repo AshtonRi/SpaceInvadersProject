@@ -65,6 +65,18 @@ function aliensShootBullet() {
     alienBullets.push(newBullet);
 }
 
+function showWinModal() {
+    const modal = document.getElementById('winModal');
+    modal.style.display = 'block'; 
+
+    const restartBtn = document.getElementById('restartButtonWin');
+    restartBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+        location.reload();
+    });
+}
+
+
 function drawLives() {
     ctx.font = "20px Arial";
     ctx.fillStyle = "white"
@@ -233,6 +245,9 @@ function checkBulletAlienCollisions() {
                 bullets.splice(i, 1);
                 aliens.splice(j, 1);
                 aliensKilled++;
+                if (aliens.length === 0) {
+                    showWinModal();
+                }
                 break;
             }
         }

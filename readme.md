@@ -1,0 +1,1 @@
+This is my first project using all the knowledge I've gained so far in the course. It is an attempt to recreate the game, "Space Invaders." 

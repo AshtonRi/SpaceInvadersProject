@@ -40,3 +40,25 @@ canvas {
 button {
     margin-top: 10px;
 }
+
+#winModal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    color: black;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+    z-index: 1000; /* Ensure it's above other elements */
+}
+
+#winModal h2 {
+    margin-bottom: 20px;
+}
+
+/* Hide the modal by default */
+#winModal {
+    display: none;
+}
