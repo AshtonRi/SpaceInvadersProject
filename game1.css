@@ -51,14 +51,13 @@ button {
     padding: 20px;
     border-radius: 5px;
     text-align: center;
-    z-index: 1000; /* Ensure it's above other elements */
+    z-index: 1000; 
 }
 
 #winModal h2 {
     margin-bottom: 20px;
 }
 
-/* Hide the modal by default */
 #winModal {
     display: none;
 }
