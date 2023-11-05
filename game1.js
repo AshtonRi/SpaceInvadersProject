@@ -42,6 +42,10 @@ const blocker = {
     blocks: []
 };
 
+let playerLives = 3;
+
+const maxBullets = 5;
+
 // Alien image 
 const alienImage = new Image();
 alienImage.src = 'https://www.pngall.com/wp-content/uploads/13/Space-Invaders-Alien-Transparent.png';
@@ -59,6 +63,12 @@ function aliensShootBullet() {
     };
 
     alienBullets.push(newBullet);
+}
+
+function drawLives() {
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "white"
+    ctx.fillText("Lives " + playerLives, canvas.width - 100, 30);
 }
 
 function initializeBlockers() {
@@ -152,8 +162,11 @@ function checkAlienBulletShipCollision() {
     for (let i = alienBullets.length - 1; i >= 0; i--) {
         if (isColliding(alienBullets[i], ship)) {
             alienBullets.splice(i, 1);
-            isShipVisible = false;
+            playerLives -= 1
+            if (playerLives <= 0) {
+                isShipVisible = false;
             showGameOverModal();
+            }
             break;
         }
     }
@@ -260,6 +273,7 @@ function gameLoop() {
     checkAlienBulletShipCollision();
     drawAliens();
     drawScore();
+    drawLives();
 
     if (Math.random() < 0.02) {
         aliensShootBullet();
@@ -293,16 +307,20 @@ document.addEventListener('keydown', function(event) {
 });
 
 function shootBullet() {
-const newBullet = {
-    x: ship.x + ship.width / 2 - bullet.width / 2,
-    y: ship.y,
-    width: bullet.width,
-    height: bullet.height,
-    dy: -bullet.dy,
-};
+    if (bullets.length < maxBullets) { // Check if current bullets are less than the maximum
+        const newBullet = {
+            x: ship.x + ship.width / 2 - bullet.width / 2,
+            y: ship.y,
+            width: bullet.width,
+            height: bullet.height,
+            dy: -bullet.dy,
+        };
 
-bullets.push(newBullet);
+        bullets.push(newBullet);
+    }
 }
+  
+
 
 function drawBullets() {
 ctx.fillStyle = 'white';
